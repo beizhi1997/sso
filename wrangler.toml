@@ -5,7 +5,7 @@ compatibility_date = "2026-06-08"
 [vars]
 ISSUER = "https://auth.itc.nekopost.top"
 OIDC_CLIENT_ID = "openai-sso"
-ALLOWED_REDIRECT_URIS = "https://external.auth.openai.com/sso/oidc/E21LYI91IffJj8kf4jRyyuqCy/callback"
+ALLOWED_REDIRECT_URIS = "https://external.auth.openai.com/sso/oidc/rcNbLoDUwTBJQD5fvqOl6T2Q4/callback"
 AUTHORIZATION_CODE_TTL_SECONDS = "300"
 TOKEN_TTL_SECONDS = "3600"
 
