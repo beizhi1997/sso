@@ -23,19 +23,23 @@ export function createApp({ store, config }) {
           return handleAuthorize(url, oidcService);
         }
         if (request.method === "POST" && url.pathname === "/login") {
-          return handleLogin(request, inviteService, oidcService);
+          return await handleLogin(request, inviteService, oidcService);
         }
         if (request.method === "POST" && url.pathname === "/token") {
-          return handleToken(request, oidcService);
+          return await handleToken(request, oidcService);
         }
         if (request.method === "GET" && url.pathname === "/userinfo") {
-          return handleUserInfo(request, oidcService, config);
+          return await handleUserInfo(request, oidcService, config);
         }
         if (url.pathname === "/admin/invite-codes") {
-          return handleInviteCodesAdmin(request, store, config);
+          return await handleInviteCodesAdmin(request, store, config);
         }
         return html("找不到頁面", { status: 404 });
       } catch (error) {
+        console.error("Worker 請求處理失敗", {
+          path: url.pathname,
+          message: getErrorMessage(error)
+        });
         return errorResponse(error);
       }
     }
@@ -270,10 +274,21 @@ function oauthError(error, description, status) {
 }
 
 function errorResponse(error) {
+  const message = getErrorMessage(error);
   return html(
-    `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>登入失敗</title></head><body><h1>登入失敗</h1><p>${escapeHtml(error.message)}</p></body></html>`,
+    `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>登入失敗</title></head><body><h1>登入失敗</h1><p>${escapeHtml(message)}</p></body></html>`,
     { status: 400 }
   );
+}
+
+function getErrorMessage(error) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+  return "登入處理失敗";
 }
 
 function escapeHtml(value) {

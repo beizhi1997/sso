@@ -79,6 +79,49 @@ describe("Worker HTTP 端點", () => {
     assert.ok(location.searchParams.get("code"));
   });
 
+  it("/login 遇到非標準錯誤時仍會回傳登入失敗頁", async () => {
+    const { app } = createTestApp();
+    app.fetch = createApp({
+      store: {
+        getUserByEmail() {
+          throw null;
+        }
+      },
+      config: loadConfig({
+        ISSUER: "https://sso.example.com",
+        OIDC_CLIENT_ID: "openai-client",
+        OIDC_CLIENT_SECRET: "secret",
+        ALLOWED_REDIRECT_URIS: "https://auth.openai.com/oidc/callback",
+        PRIVATE_JWK: JSON.stringify(privateJwk),
+        ADMIN_TOKEN: "admin-token"
+      })
+    }).fetch;
+    const body = new URLSearchParams({
+      email: "user@example.com",
+      invite_code: "JOIN",
+      client_id: "openai-client",
+      redirect_uri: "https://auth.openai.com/oidc/callback",
+      scope: "openid email"
+    });
+    const originalConsoleError = console.error;
+    console.error = () => {};
+
+    const response = await app.fetch(
+      new Request("https://sso.example.com/login", {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body
+      })
+    ).finally(() => {
+      console.error = originalConsoleError;
+    });
+    const html = await response.text();
+
+    assert.equal(response.status, 400);
+    assert.match(html, /登入失敗/);
+    assert.match(html, /登入處理失敗/);
+  });
+
   it("/authorize 登入表單不要求使用者填寫名字", async () => {
     const { app } = createTestApp();
 
