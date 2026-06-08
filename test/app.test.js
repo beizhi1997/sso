@@ -53,6 +53,9 @@ describe("Worker HTTP 端點", () => {
     assert.match(html, /account-field/);
     assert.match(html, /account-domain/);
     assert.match(html, /@itc\.989567\.xyz/);
+    assert.match(html, /turnstile-placeholder/);
+    assert.match(html, /cf-turnstile/);
+    assert.match(html, /Cloudflare 人機驗證/);
     assert.doesNotMatch(html, /邀請碼/);
     assert.doesNotMatch(html, /@itc\.@itc\.989567\.xyz/);
   });
@@ -73,6 +76,9 @@ describe("Worker HTTP 端點", () => {
     assert.match(html, /account-field/);
     assert.match(html, /account-domain/);
     assert.match(html, /@itc\.989567\.xyz/);
+    assert.match(html, /turnstile-placeholder/);
+    assert.match(html, /cf-turnstile/);
+    assert.match(html, /Cloudflare 人機驗證/);
     assert.doesNotMatch(html, /@itc\.@itc\.989567\.xyz/);
   });
 

@@ -383,6 +383,20 @@ function renderAuthPage({
       transform: translateY(0);
     }
 
+    .turnstile-placeholder {
+      display: grid;
+      place-items: center;
+      min-height: 72px;
+      margin: 18px 0 14px;
+      border: 1px dashed var(--input-border);
+      border-radius: 8px;
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+    }
+
     .hint {
       margin: 24px 0 0;
       text-align: center;
@@ -422,6 +436,7 @@ function renderAuthPage({
       </label>`
         )
         .join("")}
+      ${renderTurnstilePlaceholder()}
       <button type="submit">${escapeHtml(buttonText)}</button>
     </form>
     <p class="hint">${escapeHtml(switchText)} <a href="${escapeHtml(switchHref)}">${escapeHtml(switchLabel)}</a></p>
@@ -438,6 +453,12 @@ function renderAccountField(field) {
   return `<label class="account-field">${escapeHtml(field.label)}<span class="account-domain">@itc.989567.xyz</span>
           <input name="${escapeHtml(field.name)}" autocomplete="${escapeHtml(field.autocomplete)}" required>
         </label>`;
+}
+
+function renderTurnstilePlaceholder() {
+  return `<div class="turnstile-placeholder cf-turnstile" aria-label="Cloudflare 人機驗證">
+        Cloudflare 人機驗證
+      </div>`;
 }
 
 function renderHiddenFields(hiddenFields) {
