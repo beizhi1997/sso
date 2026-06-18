@@ -12,22 +12,54 @@ export function validateDeployEnv(env) {
   return {
     workerName: optionalValue(env.WORKER_NAME, "sso"),
     databaseName: optionalValue(env.D1_DATABASE_NAME, "openai_oidc_sso"),
-    databaseId
+    databaseId,
+    
+    // ====== 新增：从环境变量读取路由与 Vars ======
+    workerRoutes: env.WORKER_ROUTES ? String(env.WORKER_ROUTES).split(",").map(r => r.trim()) : [],
+    accountDomain: optionalValue(env.ACCOUNT_DOMAIN, ""),
+    allowedRedirectUris: optionalValue(env.ALLOWED_REDIRECT_URIS, ""),
+    issuer: optionalValue(env.ISSUER, ""),
+    oidcClientId: optionalValue(env.OIDC_CLIENT_ID, "")
   };
 }
 
 export function createWranglerConfig(env = process.env) {
   const config = validateDeployEnv(env);
-  return `name = ${quoteToml(config.workerName)}
+  
+  let tomlContent = `name = ${quoteToml(config.workerName)}
 main = "src/index.js"
 compatibility_date = "2026-06-08"
-keep_vars = true
 
-[[d1_databases]]
+`;
+
+  // ====== 动态生成 ⁠routes ======
+  if (config.workerRoutes.length > 0) {
+    tomlContent += `routes = [\n`;
+    for (const route of config.workerRoutes) {
+      tomlContent += `  { pattern = ${quoteToml(route)}, custom_domain = true }\n`;
+    }
+    tomlContent += `]\n\n`;
+  }
+
+  // ====== 动态生成 [vars] ======
+  // 只有当存在环境变量时才写入，避免写入空字符串
+  if (config.accountDomain || config.allowedRedirectUris || config.issuer || config.oidcClientId) {
+    tomlContent += `[vars]\n`;
+    if (config.accountDomain) tomlContent += `ACCOUNT_DOMAIN = ${quoteToml(config.accountDomain)}\n`;
+    if (config.allowedRedirectUris) tomlContent += `ALLOWED_REDIRECT_URIS = ${quoteToml(config.allowedRedirectUris)}\n`;
+    if (config.issuer) tomlContent += `ISSUER = ${quoteToml(config.issuer)}\n`;
+    if (config.oidcClientId) tomlContent += `OIDC_CLIENT_ID = ${quoteToml(config.oidcClientId)}\n`;
+    tomlContent += `\n`;
+  }
+
+  // ====== D1 数据库配置 ======
+  tomlContent += `[[d1_databases]]
 binding = "DB"
 database_name = ${quoteToml(config.databaseName)}
 database_id = ${quoteToml(config.databaseId)}
 `;
+
+  return tomlContent;
 }
 
 export async function writeWranglerConfig({
